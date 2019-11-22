@@ -94,10 +94,5 @@ G.set_orientation('lL')
 G.set_overlap('false')
 G.set_splines('ortho')
 G.set_rankdir('LR')
-G.write(args.dot_save_way)#, prog='neato')
-G.write_png(args.png_save_way)#, prog='neato')
-
-
-
-#1. Сделать координаты, в качесте подписи, для каждого блока синтении
-# 2.Попробовать выравнить ниато  
+G.write(args.dot_save_way)
+G.write_png(args.png_save_way)
