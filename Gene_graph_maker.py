@@ -1,21 +1,32 @@
 import argparse
+import sys
+import networkx as nx
+import numpy as np 
+
 parser = argparse.ArgumentParser(description='Find shorteat way in graph')
 parser.add_argument('-graph', type=str, help='graph.txt', required=True)
-parser.add_argument('-dot_save_way', type=str, help='new_save_way.dot', required=True)
-parser.add_argument('-png_save_way', type=str, help='png_save_way.png', required=True)
+parser.add_argument('-dot_save_way', type=str, default=None, help='output DOT file')
+parser.add_argument('-png_save_way', type=str, default=None, help='output image file')
 parser.add_argument('-D', default=2, type=int, help='max-lengh')
+parser.add_argument('-ref', type=str, required=True)
+
+
 args = parser.parse_args()
-import sys
+
+if args.dot_save_way is None:
+    args.dot_save_way == '{}.png'.format(args.graph)
+if args.png_save_way is None:
+    args.png_save_way == '{}.png'.format(args.graph)
+
 
 #import matrix 
-import numpy as np 
 A = np.loadtxt(args.graph, dtype=np.str)
 
 #ref_maker
 reference = []
 new_ref = []
 for i in A:
-    if i[2] == 'g1':
+    if i[2] == args.ref:
         x = [i[0], i[1]]
         reference.append(x)
 
@@ -42,7 +53,6 @@ for i in A:
 
 
 
-import networkx as nx
 #Ref graph
 RSG = nx.DiGraph()
 for node in new_ref:
