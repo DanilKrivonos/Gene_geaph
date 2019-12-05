@@ -8,7 +8,9 @@ from pydot import Graph, Node, Edge, Dot
 import json
 parser = argparse.ArgumentParser(description='Draw sbgraph')
 parser.add_argument('-graph', type=str, help='graph.txt', required=True)
-parser.add_argument('-ref', type=str, required=True, default='g1')
+parser.add_argument('-ref', type=str, default='g1')
+parser.add_argument('-start_node', type=str, default=None, help='print node name')
+parser.add_argument('-depth_lim', type=int, default=None, help='lim of nodes')
 parser.add_argument('-dot_save_way', type=str, default=None, help='output DOT file')
 parser.add_argument('-png_save_way', type=str, default=None, help='output image file')
 parser.add_argument('-svg_save_way', type=str, default=None, help='output image file')
@@ -58,7 +60,7 @@ for i in range(len(pdEdges)):
 for edge in Edges:
     GeneGraph[edge[0]]['adj'].append((edge[1], Edges[edge]))
 
-Gdot = Dot()
+Gdot = Dot(graph_type='graph')
 
 for node in GeneGraph:
     if node in ref_nodes:
@@ -79,35 +81,38 @@ for i in Gdot.get_nodes():
     i.set_style('filled')
 print(Gdot.get_nodes()[0])
 print(GeneGraph)
+G=nx.nx_pydot.from_pydot(Gdot)
+lim_G = nx.Graph(nx.bfs_edges(G, args.start_node, reverse=False, depth_limit=args.depth_lim))
 
-#for i in all_edges:
-    #print(all_edges.count(i))
-#print(G.nodes())
 
-#for edge in ref:
-#    for path in nx.all_simple_paths(G, source=edge[0], target=edge[1], cutoff=args.D):
-#        print(path)
+lset = set(lim_G.nodes) 
+not_short_graph_nodes = []
+for node in G.nodes:
+    if node not in set(lim_G.nodes):
+        not_short_graph_nodes.append(node)
 
-for node in Gdot.get_nodes():
+G.remove_nodes_from(not_short_graph_nodes)
+short_G = nx.nx_pydot.to_pydot(G)
+
+for node in short_G.get_nodes():
     node.set_shape('box')
     #node.set_style('filled')
     node.set_style('rounded')
-Gdot.set_rotate('landscape')
-Gdot.set_orientation('lL')
+short_G.set_rotate('landscape')
+short_G.set_orientation('lL')
 #for neato graph G.set_overlap('true')
-Gdot.set_splines('ortho')
-Gdot.set_rankdir('LR')
-Gdot.write(args.dot_save_way)#, prog='neato')
-Gdot.write_png(args.png_save_way)#, prog='neato')
-Gdot.write_svg(args.svg_save_way)#, prog='neato')
+short_G.set_splines('ortho')
+short_G.set_rankdir('LR')
+short_G.write(args.dot_save_way)#, prog='neato')
+short_G.write_png(args.png_save_way)#, prog='neato')
+short_G.write_svg(args.svg_save_way)#, prog='neato')
 
-G=nx.nx_pydot.from_pydot(Gdot)
-
+short_G = nx.nx_pydot.from_pydot(short_G)
 __all__ = ['cytoscape_data', 'cytoscape_graph']
 
 _attrs = dict(name='name', ident='id')
 
-def cytoscape_data(G, attrs=None):
+def cytoscape_data(short_G, attrs=None):
     if not attrs:
         attrs = _attrs
     else:
@@ -119,35 +124,35 @@ def cytoscape_data(G, attrs=None):
     if len(set([name, ident])) < 2:
         raise nx.NetworkXError('Attribute names are not unique.')
 
-    jsondata = {"data": list(G.graph.items())}
-    jsondata['directed'] = G.is_directed()
-    jsondata['multigraph'] = G.is_multigraph()
+    jsondata = {"data": list(short_G.graph.items())}
+    jsondata['directed'] = short_G.is_directed()
+    jsondata['multigraph'] = short_G.is_multigraph()
     jsondata["elements"] = {"nodes": [], "edges": []}
     nodes = jsondata["elements"]["nodes"]
     edges = jsondata["elements"]["edges"]
 
-    for i, j in G.nodes.items():
+    for i, j in short_G.nodes.items():
         n = {"data": j.copy()}
         n["data"]["id"] = j.get(ident) or str(i)
         n["data"]["value"] = i
         n["data"]["name"] = j.get(name) or str(i)
         nodes.append(n)
 
-    if G.is_multigraph():
-        for e in G.edges(keys=True):
-            n = {"data": G.adj[e[0]][e[1]][e[2]].copy()}
+    if short_G.is_multigraph():
+        for e in short_G.edges(keys=True):
+            n = {"data": short_G.adj[e[0]][e[1]][e[2]].copy()}
             n["data"]["source"] = e[0]
             n["data"]["target"] = e[1]
             n["data"]["key"] = e[2]
             edges.append(n)
     else:
-        for e in G.edges():
-            n = {"data": G.adj[e[0]][e[1]].copy()}
+        for e in short_G.edges():
+            n = {"data": short_G.adj[e[0]][e[1]].copy()}
             n["data"]["source"] = e[0]
             n["data"]["target"] = e[1]
             edges.append(n)
     return jsondata
-JGG = cytoscape_data(G)
+JGG = cytoscape_data(short_G)
 
 graphWithPositions = pydot.graph_from_dot_data(Gdot.create_dot().decode('utf-8'))[0]
 print(graphWithPositions.get_nodes())
@@ -169,10 +174,6 @@ for node in JGG['elements']['nodes']:
         node['data']['coordinates'] = str(GeneGraph[i]['coordinates'])
     print(node['data'])
 
-my_details = G
+my_details = short_G
 with open(args.save_way, 'w') as json_file:
     json.dump(JGG, json_file)
-
-#1. Сделать координаты, в качесте подписи, для каждого блока синтении
-#2. Допистаь веса
-#3. Выбрать нод и глубину обхода dfs или bfs
