@@ -94,6 +94,14 @@ for node in G.nodes:
 G.remove_nodes_from(not_short_graph_nodes)
 short_G = nx.nx_pydot.to_pydot(G)
 
+#for i in all_edges:
+    #print(all_edges.count(i))
+#print(G.nodes())
+
+#for edge in ref:
+#    for path in nx.all_simple_paths(G, source=edge[0], target=edge[1], cutoff=args.D):
+#        print(path)
+
 for node in short_G.get_nodes():
     node.set_shape('box')
     #node.set_style('filled')
@@ -106,6 +114,22 @@ short_G.set_rankdir('LR')
 short_G.write(args.dot_save_way)#, prog='neato')
 short_G.write_png(args.png_save_way)#, prog='neato')
 short_G.write_svg(args.svg_save_way)#, prog='neato')
+
+
+#uncomment to make full graph
+
+#for node in Gdot.get_nodes():
+#    node.set_shape('box')
+    #node.set_style('filled')
+#    node.set_style('rounded')
+#Gdot.set_rotate('landscape')
+#Gdot.set_orientation('lL')
+#for neato graph G.set_overlap('true')
+#Gdot.set_splines('ortho')
+#Gdot.set_rankdir('LR')
+#Gdot.write(args.dot_save_way)#, prog='neato')
+#Gdot.write_png(args.png_save_way)#, prog='neato')
+#Gdot.write_svg(args.svg_save_way)#, prog='neato')
 
 short_G = nx.nx_pydot.from_pydot(short_G)
 __all__ = ['cytoscape_data', 'cytoscape_graph']
@@ -163,7 +187,7 @@ for i in graphWithPositions.get_nodes():
     for node in JGG['elements']['nodes']:
         if nodename == node['data']['id']:
             print(node['data'])
-            x, y = i.get_pos()[1:-1].split(',')
+            y, x = i.get_pos()[1:-1].split(',')
             node['data']['x'] = float(x)
             node['data']['y'] = float(y)
             #node['data']['width'] = float(node['data']['width'])*100
