@@ -6,7 +6,7 @@ Use this to make backbone file from mauve.
 
 ### Pars_mauve 
 
-To find syntheny blocks, we uses programm mauve .To make file for mauve  more clear ( make matrix.txt file for Gene_graph_maker.py).*.txt file has type *[sbi sbi+1 gn len1 len2 coordinate1 coordinate2]* lenmax*
+To find syntheny blocks, we uses programm mauve .To make file for mauve  more clear ( make matrix.txt file for Gene_graph_maker.py).*.txt file has type *[sb_start sb_end gn len1 len2 coordinate1 coordinate2]* lenmax*
 
 #### Gene_graph_maker.py
 
